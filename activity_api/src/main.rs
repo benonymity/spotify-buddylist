@@ -89,7 +89,7 @@ pub struct Context {
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Token {
+pub struct TokenResponse {
     pub client_id: String,
     pub access_token: String,
     pub access_token_expiration_timestamp_ms: i64,
@@ -97,7 +97,7 @@ pub struct Token {
 }
 
 fn main() {
-    let token = {your_token_here}
+    let token = "{your_token_here}";
     match refresh_token(token) {
         Ok(access_token) => {
             println!("{}", access_token);
@@ -118,8 +118,6 @@ fn main() {
     // let text = serde_json::to_string(&addr);
     // println!("{}", addr)
 }
-
-// use std::error::Error;
 
 #[tokio::main]
 async fn latest(access_token: String) -> Result<String, Box<dyn std::error::Error>> {
@@ -153,32 +151,22 @@ async fn latest(access_token: String) -> Result<String, Box<dyn std::error::Erro
 }
 
 #[tokio::main]
-async fn refresh_token(sp_dc: &str) -> Result<String, Box<dyn std::error::Error>> {
-    // let access_token = format!("sp_dc={token}", token = sp_dc);
-    let access_token = format!("sp_dc={token}", token={your_token_here}
+async fn refresh_token(sp_dc: &str) -> Result<TokenResponse> {
+    let access_token = format!("sp_dc={token}", token = sp_dc);
     let client = reqwest::Client::new();
     let resp = client
         .get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player")
         .header("Cookie", access_token)
         .send()
         .await?;
-    let status = resp.status();
-    let res: &str = &resp.text().await?;
-    println!("{}", res);
-    match status {
-        reqwest::StatusCode::OK => {
-            println!("No errors!")
+    match resp {
+        Ok(parsed) => {
+            let json: TokenResponse = serde_json::from_str(parsed);
+            Some(json);
         }
-        reqwest::StatusCode::UNAUTHORIZED => {
-            println!("Need to grab a new token");
-        }
-        other => {
-            panic!("Uh oh! Something unexpected happened: {:?}", other);
+        Err(e) => {
+            println!("{}", e);
+            None
         }
     };
-    let json = match serde_json::from_str(res) {
-        Ok(parsed) => parsed,
-        Err(e) => println!("Error: {}", e),
-    };
-    Ok(serde_json::to_string(&json)?)
 }
