@@ -92,6 +92,8 @@ func refreshToken() {
 }
 
 func latestActivity(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Content-Type", "application/json")
 	response, err := call("https://guc-spclient.spotify.com/presence-view/v1/buddylist", "Auth")
 	if err {
 		refreshToken()
