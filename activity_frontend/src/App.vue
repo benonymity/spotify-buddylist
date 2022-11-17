@@ -31,20 +31,57 @@
               >
                 <path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" />
               </svg>
+              <svg
+                v-show="friend.timestamp > new Date().getTime() - 300000"
+                class="presence"
+                viewBox="0 0 20 20"
+              >
+                <circle fill="#000" cx="10" cy="10" r="5"></circle>
+                <circle fill="#4275CA" cx="10" cy="10" r="4"></circle>
+              </svg>
             </div>
           </a>
           <div className="friendactivity-content-bottom-right">
             <div className="friendactivity-content-bottom-right-user">
-              <div>
-                <a
-                  :href="
-                    'https://open.spotify.com/track/' +
-                    friend.user.uri.split(':')[2]
-                  "
-                  target="_blank"
-                  >{{ friend.user.name }}</a
-                >
+              <div
+                style="
+                  width: 100%;
+                  display: flex;
+                  justify-content: space-between;
+                "
+              >
+                <span
+                  ><a
+                    :href="
+                      'https://open.spotify.com/user/' +
+                      friend.user.uri.split(':')[2]
+                    "
+                    target="_blank"
+                    >{{ friend.user.name }}</a
+                  >
+                </span>
+                <div className="friendactivity-content-bottom-right-user-time">
+                  <span
+                    v-if="new Date().getTime() - friend.timestamp > 300000"
+                    >{{ difference(friend.timestamp) }}</span
+                  >
+                  <svg
+                    v-else
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill="none"
+                      stroke="#b3b3b3"
+                      stroke-width="2"
+                      d="M1 14V4m4 10V0m4 14v-4m4 4V7"
+                    />
+                  </svg>
+                </div>
               </div>
+              <!-- <div style="text-align: right">1 hr</div> -->
               <IconVolume
                 width="16"
                 height="16"
@@ -71,72 +108,74 @@
                 >{{ friend.track.artist.name }}</a
               >
             </div>
-            <div className="friendactivity-content-bottom-right-album">
-              <div className="friendactivity-content-bottom-right-album-icon">
-                <svg
-                  v-if="friend.track.context.uri.split(':')[1] == 'album'"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 22 22"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <circle
-                    fill="none"
-                    stroke="#b3b3b3"
-                    stroke-width="2"
-                    cx="11"
-                    cy="11"
-                    r="10"
-                  />
-                  <circle
-                    fill="none"
-                    stroke="#b3b3b3"
-                    stroke-width="2"
-                    cx="11"
-                    cy="11"
-                    r="3"
-                  />
-                </svg>
-                <svg
-                  v-if="friend.track.context.uri.split(':')[1] == 'playlist'"
-                  style="width: 12px; height: 12px; margin-top: 2px"
-                  viewBox="0 0 32 32"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill="none"
-                    stroke="#b3b3b3"
-                    stroke-width="3"
-                    d="M11 25a5 5 0 1 0-10 0 5 5 0 1 0 10 0V5l20-5v20a5 5 0 1 0-10 0 5 5 0 1 0 10 0"
-                  />
-                </svg>
-                <svg
-                  v-if="friend.track.context.uri.split(':')[1] == 'artist'"
-                  fill="#b3b3b3"
-                  width="12"
-                  height="13.3333"
-                  viewBox="0 0 18 20"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fill="none"
-                    stroke="#b3b3b3"
-                    stroke-width="1"
-                    d="M15.216 13.717 12 11.869a.492.492 0 0 1-.243-.348.496.496 0 0 1 .112-.41l1.311-1.537A5.498 5.498 0 0 0 14.5 6v-.5a5.524 5.524 0 0 0-1.739-4.014A5.46 5.46 0 0 0 8.636.011c-2.88.187-5.135 2.673-5.135 5.66V6c0 1.311.469 2.58 1.319 3.574l1.311 1.537a.49.49 0 0 1 .112.41.49.49 0 0 1-.244.348l-3.213 1.847A5.513 5.513 0 0 0 0 18.501V20h1v-1.499c0-1.616.874-3.116 2.283-3.917l3.215-1.848c.388-.223.654-.604.73-1.045a1.494 1.494 0 0 0-.337-1.229L5.579 8.925A4.505 4.505 0 0 1 4.499 6v-.329c0-2.461 1.845-4.509 4.2-4.662a4.468 4.468 0 0 1 3.377 1.206A4.461 4.461 0 0 1 13.5 5.5V6a4.5 4.5 0 0 1-1.08 2.925l-1.311 1.537a1.499 1.499 0 0 0 .394 2.274l3.218 1.849a4.513 4.513 0 0 1 2.28 3.916V20h1v-1.499a5.517 5.517 0 0 0-2.785-4.784Z"
-                  />
-                </svg>
-              </div>
-              <div className="friendactivity-content-bottom-right-album-name">
-                <a
-                  :href="
-                    'https://open.spotify.com/' +
-                    friend.track.context.uri.split(':')[1] +
-                    '/' +
-                    friend.track.context.uri.split(':')[2]
-                  "
-                  target="_blank"
-                  >{{ friend.track.context.name }}</a
-                >
+            <div className="friendactivity-content-bottom-right-line">
+              <div className="friendactivity-content-bottom-right-album">
+                <div className="friendactivity-content-bottom-right-album-icon">
+                  <svg
+                    v-if="friend.track.context.uri.split(':')[1] == 'album'"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 22 22"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle
+                      fill="none"
+                      stroke="#b3b3b3"
+                      stroke-width="2"
+                      cx="11"
+                      cy="11"
+                      r="10"
+                    />
+                    <circle
+                      fill="none"
+                      stroke="#b3b3b3"
+                      stroke-width="2"
+                      cx="11"
+                      cy="11"
+                      r="3"
+                    />
+                  </svg>
+                  <svg
+                    v-if="friend.track.context.uri.split(':')[1] == 'playlist'"
+                    style="width: 12px; height: 12px; margin-top: 2px"
+                    viewBox="0 0 32 32"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill="none"
+                      stroke="#b3b3b3"
+                      stroke-width="3"
+                      d="M11 25a5 5 0 1 0-10 0 5 5 0 1 0 10 0V5l20-5v20a5 5 0 1 0-10 0 5 5 0 1 0 10 0"
+                    />
+                  </svg>
+                  <svg
+                    v-if="friend.track.context.uri.split(':')[1] == 'artist'"
+                    fill="#b3b3b3"
+                    width="12"
+                    height="13.3333"
+                    viewBox="0 0 18 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fill="none"
+                      stroke="#b3b3b3"
+                      stroke-width="1"
+                      d="M15.216 13.717 12 11.869a.492.492 0 0 1-.243-.348.496.496 0 0 1 .112-.41l1.311-1.537A5.498 5.498 0 0 0 14.5 6v-.5a5.524 5.524 0 0 0-1.739-4.014A5.46 5.46 0 0 0 8.636.011c-2.88.187-5.135 2.673-5.135 5.66V6c0 1.311.469 2.58 1.319 3.574l1.311 1.537a.49.49 0 0 1 .112.41.49.49 0 0 1-.244.348l-3.213 1.847A5.513 5.513 0 0 0 0 18.501V20h1v-1.499c0-1.616.874-3.116 2.283-3.917l3.215-1.848c.388-.223.654-.604.73-1.045a1.494 1.494 0 0 0-.337-1.229L5.579 8.925A4.505 4.505 0 0 1 4.499 6v-.329c0-2.461 1.845-4.509 4.2-4.662a4.468 4.468 0 0 1 3.377 1.206A4.461 4.461 0 0 1 13.5 5.5V6a4.5 4.5 0 0 1-1.08 2.925l-1.311 1.537a1.499 1.499 0 0 0 .394 2.274l3.218 1.849a4.513 4.513 0 0 1 2.28 3.916V20h1v-1.499a5.517 5.517 0 0 0-2.785-4.784Z"
+                    />
+                  </svg>
+                </div>
+                <div className="friendactivity-content-bottom-right-album-name">
+                  <a
+                    :href="
+                      'https://open.spotify.com/' +
+                      friend.track.context.uri.split(':')[1] +
+                      '/' +
+                      friend.track.context.uri.split(':')[2]
+                    "
+                    target="_blank"
+                    >{{ friend.track.context.name }}</a
+                  >
+                </div>
               </div>
             </div>
           </div>
@@ -163,6 +202,18 @@ export default {
     },
   },
   methods: {
+    difference(timestamp) {
+      let difference = Math.round((new Date().getTime() - timestamp) / 60000);
+      if (difference < 60) {
+        return String(difference) + " min";
+      } else if (difference < 1440) {
+        return String(Math.round(difference / 60)) + " hr";
+      } else if (difference < 10080) {
+        return String(Math.round(difference / 1440)) + " d";
+      } else {
+        return String(Math.round(difference / 10080)) + " w";
+      }
+    },
     loadStats() {
       // let url = window.location + "api/latest";
       let url = "http://192.168.0.30:10000/api/latest";
@@ -176,10 +227,14 @@ export default {
     },
   },
   mounted() {
+    document.title = "Spotify Friend Activity";
     this.loadStats();
     setInterval(
       function () {
-        this.loadStats();
+        if (!document.hidden) {
+          this.loadStats();
+          // console.log(new Date().getTime());
+        }
       }.bind(this),
       5000
     );
@@ -251,7 +306,16 @@ a:hover {
   left: 9px;
   opacity: 0;
 }
-.friendactivity-content-bottom-left:hover svg {
+.friendactivity-content-bottom-left .presence {
+  opacity: 100%;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: -7px;
+  left: 25px;
+  z-index: 3;
+}
+.friendactivity-content-bottom-left:hover .play {
   opacity: 100%;
 }
 .friendactivity-content-bottom-left .no-photo {
@@ -272,9 +336,16 @@ a:hover {
   margin-bottom: 4px;
   display: flex;
   color: #fff;
+  justify-content: space-between;
+}
+.friendactivity-content-bottom-right-user-time {
+  color: #9a9a9a;
+  font-size: 0.7em;
+  font-weight: 500;
 }
 .friendactivity-content-bottom-right-user div {
   margin-right: 10px;
+  justify-content: space-between;
 }
 .friendactivity-content-bottom-right-user-icon {
   margin-left: auto;
@@ -301,9 +372,20 @@ a:hover {
   margin-bottom: 8px;
 }
 .friendactivity-content-bottom-right-album {
-  display: flex;
-  align-items: center;
   padding-right: 24px;
+  width: 255px;
+  display: flex;
+  justify-content: left;
+}
+.ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.friendactivity-content-bottom-right-album-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .friendactivity-content-bottom-right-album-icon {
   margin-right: 6px;
