@@ -73,7 +73,7 @@ func call(url, header string) (string, bool) {
 	if err != nil {
 		return err.Error(), true
 	} else if response.StatusCode != 200 {
-		fmt.Println("Bad status code")
+		// fmt.Println("Bad status code")
 		return string(responseData), true
 	} else {
 		return string(responseData), false
@@ -109,6 +109,8 @@ func latestActivity(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
+	fs := http.FileServer(http.Dir("../activity_frontend/dist"))
+	http.Handle("/", fs)
 	http.HandleFunc("/api/latest", latestActivity)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
