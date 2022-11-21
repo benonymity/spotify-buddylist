@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"errors"
 )
 
 var sp_dc = os.Getenv("SP_DC")
@@ -109,8 +110,13 @@ func latestActivity(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
-	fs := http.FileServer(http.Dir("../activity_frontend/dist"))
-	http.Handle("/", fs)
+	if _, err := os.Stat("/.dockerenv"); errors.Is(err, os.ErrNotExist) {
+		fs := http.FileServer(http.Dir("../activity_frontend/dist"))
+		http.Handle("/", fs)
+	} else {
+		fs := http.FileServer(http.Dir("/dist"))
+		http.Handle("/", fs)
+	}
 	http.HandleFunc("/api/latest", latestActivity)
 	log.Fatal(http.ListenAndServe(":10000", nil))
 }
