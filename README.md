@@ -5,6 +5,6 @@ This program serves a web client that calls a backend proxy on your server which
 Todo:
 
 - [ ] Cache API results in backend
-- [ ] Add last listened time to frontend
 - [ ] Save history to DB and allow seeing past activity?
-- [ ] Github Actions to build Docker image
+- [x] Add last listened time to frontend
+- [x] Github Actions to build Docker image

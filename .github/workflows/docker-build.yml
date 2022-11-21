@@ -27,12 +27,6 @@ jobs:
       - name: Check out
         uses: actions/checkout@v3
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: benonymity/spotify-buddylist
-
       - name: Setup Node
         uses: actions/setup-node@v3
 
@@ -62,6 +56,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: benonymity/spotify-buddylist
 
       - name: Build and push image
         uses: docker/build-push-action@v3
