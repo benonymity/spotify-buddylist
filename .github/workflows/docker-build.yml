@@ -55,6 +55,7 @@ jobs:
 
       - name: Build Go
         run: CGO_ENABLED=0 go build server.go
+        working-directory: api
 
       - name: Login to Dockerhub
         uses: docker/login-action@v2
