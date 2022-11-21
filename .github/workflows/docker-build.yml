@@ -39,9 +39,13 @@ jobs:
         with:
           node-version: 16.0.0
 
-      - run: cd frontend
-      - run: npm ci
-      - run: npm run build --if-present
+      - name: Install dependencies
+        run: npm ci
+        working-directory: frontend
+
+      - name: Build Vue
+        run: npm run build --if-present
+        working-directory: frontend
 
       - name: Setup Go
         uses: actions/setup-go@v3
