@@ -1,7 +1,7 @@
 FROM alpine:latest
 
-COPY activity_api_go/server /
-COPY activity_frontend/dist /dist/
+COPY api/server /
+COPY frontend/dist /dist/
 
 LABEL MAINTAINER="benonymity"
 LABEL Github="https://github.com/benonymity/spotify-buddylist"

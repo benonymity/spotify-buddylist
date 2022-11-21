@@ -1,0 +1,68 @@
+---
+name: Build and Push Docker Image
+
+on:
+  # Allows you to run workflow manually from Actions tab
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Docker Tag"
+        required: true
+        default: "latest"
+  push:
+    branches: [main]
+    tags:
+      - "v*.*.*"
+    # Only build when files in these directories have been changed
+    paths:
+      - activity/src/**
+      - api/**
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: benonymity/spotify-buddylist
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+
+        with:
+          node-version: 16.0.0
+
+      - name: Build Vue
+        run: cd frontend
+        run: npm ci
+        run: npm run build --if-present
+
+      - name: Setup Go
+        uses: actions/setup-go@v3
+
+        with:
+          go-version: 1.19
+
+      - name: Build Go
+        run: CGO_ENABLED=0 go build server.go 
+
+      - name: Login to Dockerhub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v3
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true

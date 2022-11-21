@@ -111,7 +111,7 @@ func latestActivity(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	if _, err := os.Stat("/.dockerenv"); errors.Is(err, os.ErrNotExist) {
-		fs := http.FileServer(http.Dir("../activity_frontend/dist"))
+		fs := http.FileServer(http.Dir("../frontend/dist"))
 		http.Handle("/", fs)
 	} else {
 		fs := http.FileServer(http.Dir("/dist"))
