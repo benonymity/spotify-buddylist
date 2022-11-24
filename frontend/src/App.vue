@@ -2,7 +2,6 @@
   <div className="friendactivity">
     <div ref="unfocus" className="friendactivity-content">
       <div className="friendactivity-content-top">Spotify Friend Activity</div>
-      <div classname="friendactivity-content-line"></div>
       <!-- <div className="friendactivity-content-input"> -->
       <!-- <input -->
       <!--   @keyup="trySearch()" -->
