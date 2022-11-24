@@ -6,6 +6,8 @@ on:
   workflow_dispatch:
     branches:
       - "main"
+    tags:
+      - "v*"
   push:
     branches:
       - "main"
@@ -31,10 +33,7 @@ jobs:
           images: |
             benonymity/spotify-buddylist
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=edge,enable=true,priority=700,prefix=,suffix=,branch=main
 
       - name: Setup Node
         uses: actions/setup-node@v3
@@ -70,4 +69,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: "latest"
+          tags: ${{ steps.meta.outputs.tags }}
