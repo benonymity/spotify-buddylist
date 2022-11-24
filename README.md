@@ -4,8 +4,6 @@ This program serves a web client that calls a backend proxy on your server which
 
 # Usage
 
----
-
 ### Manual:
 
 Clone the repo:
@@ -41,13 +39,9 @@ docker run -d -p 10000:10000 --name spotify-buddylist benonymity/spotify-buddyli
 
 # Getting your sp_dc token
 
----
-
 Login to the [web player](https://open.spotify.com/) in an incognito window and Inspect Element. Open the network tab and search `clienttoken`, then copy the token from the response. This is your one-year-expiry sp_dc token.
 
 # Todo:
-
----
 
 - [ ] Cache API results in backend
 - [ ] Save history to DB and allow seeing past activity?
