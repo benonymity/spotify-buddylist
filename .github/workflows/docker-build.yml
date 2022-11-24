@@ -9,6 +9,8 @@ on:
     tags:
       - "v*"
   push:
+    branches:
+      - "main"
     # Only build when files in these directories have been changed
     paths:
       - frontend/src/**
