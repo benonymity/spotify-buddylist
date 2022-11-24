@@ -11,8 +11,6 @@ on:
         default: "latest"
   push:
     branches: [main]
-    tags:
-      - "v*.*.*"
     # Only build when files in these directories have been changed
     paths:
       - activity/src/**
@@ -62,10 +60,12 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: benonymity/spotify-buddylist
+          tags: |
+            type=semver,pattern={{version}}
 
       - name: Build and push image
         uses: docker/build-push-action@v3
         with:
-          tags: ${{ steps.meta.outputs.tags }}
           context: .
           push: true
+          tags: ${{ steps.meta.outputs.tags }}
