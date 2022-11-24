@@ -30,10 +30,7 @@ jobs:
           images: |
             benonymity/spotify-buddylist
           tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest
 
       - name: Setup Node
         uses: actions/setup-node@v3
