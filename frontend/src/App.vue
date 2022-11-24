@@ -2,25 +2,26 @@
   <div className="friendactivity">
     <div ref="unfocus" className="friendactivity-content">
       <div className="friendactivity-content-top">Spotify Friend Activity</div>
+      <div classname="friendactivity-content-line"></div>
       <!-- <div className="friendactivity-content-input"> -->
-      <!--   <input -->
-      <!--     @keyup="trySearch()" -->
-      <!--     v-model="search" -->
-      <!--     ref="searchbox" -->
-      <!--     type="text" -->
+      <!-- <input -->
+      <!--   @keyup="trySearch()" -->
+      <!--   v-model="search" -->
+      <!--   ref="searchbox" -->
+      <!--   type="text" -->
+      <!-- /> -->
+      <!-- <svg -->
+      <!--   width="24" -->
+      <!--   height="24" -->
+      <!--   xmlns="http://www.w3.org/2000/svg" -->
+      <!--   fill-rule="evenodd" -->
+      <!--   clip-rule="evenodd" -->
+      <!-- > -->
+      <!--   <path -->
+      <!--     fill="#282828" -->
+      <!--     d="M15.853 16.56c-1.683 1.517-3.911 2.44-6.353 2.44-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5c0 2.442-.923 4.67-2.44 6.353l7.44 7.44-.707.707-7.44-7.44zm-6.353-15.56c4.691 0 8.5 3.809 8.5 8.5s-3.809 8.5-8.5 8.5-8.5-3.809-8.5-8.5 3.809-8.5 8.5-8.5z" -->
       <!--   /> -->
-      <!--   <svg -->
-      <!--     width="24" -->
-      <!--     height="24" -->
-      <!--     xmlns="http://www.w3.org/2000/svg" -->
-      <!--     fill-rule="evenodd" -->
-      <!--     clip-rule="evenodd" -->
-      <!--   > -->
-      <!--     <path -->
-      <!--       fill="#282828" -->
-      <!--       d="M15.853 16.56c-1.683 1.517-3.911 2.44-6.353 2.44-5.243 0-9.5-4.257-9.5-9.5s4.257-9.5 9.5-9.5 9.5 4.257 9.5 9.5c0 2.442-.923 4.67-2.44 6.353l7.44 7.44-.707.707-7.44-7.44zm-6.353-15.56c4.691 0 8.5 3.809 8.5 8.5s-3.809 8.5-8.5 8.5-8.5-3.809-8.5-8.5 3.809-8.5 8.5-8.5z" -->
-      <!--     /> -->
-      <!--   </svg> -->
+      <!-- </svg> -->
       <!-- </div> -->
       <div v-show="!searching">
         <template v-for="friend in users" :key="friend.user.name">
@@ -255,7 +256,7 @@ export default {
     },
     loadStats() {
       let url = window.location + "api/latest";
-      // let url = "http://192.168.0.30:10000/api/latest";
+      // let url = "http://192.168.1.52:10000/api/latest";
       axios
         .get(url)
         .then((response) => response.data)
@@ -343,6 +344,9 @@ a:hover {
   font-size: 1.16em;
   font-weight: bold;
   padding-bottom: 12px;
+}
+.friendactivity-content-line {
+  border-bottom: 0.5px solid #282828;
 }
 .friendactivity-content-input {
   padding-bottom: 4px;
