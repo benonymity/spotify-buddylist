@@ -9,14 +9,11 @@ on:
     tags:
       - "v*"
   push:
-    branches:
-      - "main"
     # Only build when files in these directories have been changed
     paths:
       - frontend/src/**
       - api/**
-    tags:
-      - "v*"
+    tags: [v*]
 
 jobs:
   build:
@@ -31,8 +28,13 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: benonymity/spotify-buddylist
-          tags: type=semver,pattern={{version}}
+          images: |
+            benonymity/spotify-buddylist
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
 
       - name: Setup Node
         uses: actions/setup-node@v3
