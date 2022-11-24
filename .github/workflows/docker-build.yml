@@ -73,4 +73,3 @@ jobs:
           context: .
           push: true
           tags: "latest", "v.1.0"
-          # tags: ${{ steps.meta.outputs.tags }}
