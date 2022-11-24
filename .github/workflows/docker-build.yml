@@ -6,8 +6,6 @@ on:
   workflow_dispatch:
     branches:
       - "main"
-    tags:
-      - "v*"
   push:
     branches:
       - "main"
@@ -72,6 +70,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            "latest"
-            "v.1.0"
+          tags: "latest"
