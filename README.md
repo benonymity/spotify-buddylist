@@ -1,6 +1,8 @@
 # Spotify Friend Activity
 
-This program serves a web client that calls a backend proxy on your server which talks to Spotify's unofficial activity API and displays it in a webpage with similar styling to Spotify.
+This program serves a webpage that imitates Spotify's official friend activity list for the account token you supply.
+
+It serves a web client that calls a backend proxy on your server which talks to Spotify's unofficial activity API using a privledged access token and displays it in a webpage with similar styling to Spotify.
 
 # Usage
 
@@ -18,7 +20,7 @@ Enter the `activity` folder and run
 npm run build
 ```
 
-Then fill in your sp_dc token in `sp_dc.txt`.
+Then fill in your sp_dc token in `sp_dc.txt`
 
 Enter the `api` folder and run
 
@@ -26,6 +28,8 @@ Enter the `api` folder and run
 go build server.go
 ./server
 ```
+
+The page is now being served on `http://localhost:10000`
 
 ### Docker:
 
@@ -43,7 +47,6 @@ Login to the [web player](https://open.spotify.com/) in an incognito window and 
 
 # Todo:
 
-- [ ] Cache API results in backend
-- [ ] Save history to DB and allow seeing past activity?
-- [x] Add last listened time to frontend
-- [x] Github Actions to build Docker image
+- [ ] Cache API results in backend to avoid DDOS
+- [ ] Save history to DB and allow seeing past activity
+- [ ] Allow following of new users from webpage
