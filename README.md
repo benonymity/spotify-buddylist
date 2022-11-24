@@ -29,7 +29,7 @@ go build server.go
 
 ### Docker:
 
-Pull `benonymity/spotify-buddylist` and run it with an environment variable SP_DC containing your token. Bind port 10000 to wherever you want to serve the webpage.
+Pull `benonymity/spotify-buddylist:latest` and run it with an environment variable SP_DC containing your token. Bind port 10000 to wherever you want to serve the webpage.
 
 Example Docker command:
 
