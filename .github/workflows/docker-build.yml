@@ -4,17 +4,16 @@ name: Build and Push Docker Image
 on:
   # Allows you to run workflow manually from Actions tab
   workflow_dispatch:
-    inputs:
-      tags:
-        description: "Docker Tag"
-        required: true
-        default: "latest"
+    tags:
+      - "v*.*"
   push:
     branches: [main]
     # Only build when files in these directories have been changed
     paths:
       - activity/src/**
       - api/**
+    tags:
+      - "v*.*"
 
 jobs:
   build:
