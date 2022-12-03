@@ -14,10 +14,10 @@ Clone the repo:
 git clone https://github.com/benonymity/spotify-buddylist.git
 ```
 
-Enter the `activity` folder and run
+Run
 
 ```
-npm run build
+./build.sh
 ```
 
 Then fill in your sp_dc token in `sp_dc.txt`
@@ -25,7 +25,6 @@ Then fill in your sp_dc token in `sp_dc.txt`
 Enter the `api` folder and run
 
 ```
-go build server.go
 ./server
 ```
 
