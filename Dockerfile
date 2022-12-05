@@ -1,10 +1,9 @@
 FROM alpine:latest AS build
 RUN apk update
 RUN apk upgrade
-RUN apk add --update go=1.8.3-r0 gcc=6.3.0-r4 g++=6.3.0-r4
+RUN apk add --update go	gcc g++
 WORKDIR /app
-COPY api/server.go .
-ENV GOPATH /app
+COPY api/ .
 RUN CGO_ENABLED=1 GOOS=linux go build server.go
 
 FROM alpine:latest

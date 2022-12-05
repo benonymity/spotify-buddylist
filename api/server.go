@@ -396,7 +396,6 @@ func cacheActivity() {
 			}
 		}
 	}
-	println("Cached activity!")
 }
 
 func getCachedActivity(ms int64) (FriendActivity, error) {
