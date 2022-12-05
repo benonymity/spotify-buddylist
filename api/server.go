@@ -7,12 +7,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/gorilla/mux"
 	_ "github.com/mattn/go-sqlite3"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 )
 
 var sp_dc string
@@ -51,7 +54,7 @@ type FriendActivity struct {
 }
 
 type Friend struct {
-	Timestamp int64 `json:"timestamp"`
+	Timestamp int   `json:"timestamp"`
 	User      User  `json:"user"`
 	Track     Track `json:"track"`
 }
@@ -154,9 +157,12 @@ func callActivity() (FriendActivity, error) {
 
 // HTTP response handlers
 func activityResponse(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)["id"]
+	id, err := strconv.ParseInt(vars, 0, 64)
+	handleErr(err)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
-	resp, err := cachedActivity()
+	resp, err := getCachedActivity(id)
 	handleErr(err)
 	resp_json, err := json.Marshal(resp)
 	handleErr(err)
@@ -179,16 +185,16 @@ func configResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequests() {
+	router := mux.NewRouter()
+	router.HandleFunc("/api/{id:[0-9]+}", activityResponse)
+	router.HandleFunc("/config", configResponse)
 	if _, err := os.Stat("/.dockerenv"); errors.Is(err, os.ErrNotExist) {
-		fs := http.FileServer(http.Dir("../frontend/dist"))
-		http.Handle("/", fs)
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir("../frontend/dist")))
 	} else {
-		fs := http.FileServer(http.Dir("/dist"))
-		http.Handle("/", fs)
+		router.PathPrefix("/").Handler(http.FileServer(http.Dir("/dist")))
 	}
-	http.HandleFunc("/api/latest", activityResponse)
-	http.HandleFunc("/config", configResponse)
-	log.Fatal(http.ListenAndServe(":10000", nil))
+	log.Println("Serving webpage!")
+	http.ListenAndServe(":10000", router)
 }
 
 // Database functions
@@ -208,7 +214,15 @@ func handleDb() {
 		if update {
 			updateActivityDbs()
 		}
+		cacheActivity()
+		go doEvery(5*time.Second, cacheActivity)
+	}
+}
 
+func refresh() {
+	update := updateUserDb()
+	if update {
+		updateActivityDbs()
 	}
 }
 
@@ -243,7 +257,7 @@ func updateUserDb() bool {
 	// Trim users table for any unfollowed users
 	for i := 0; i < len(users); i++ {
 		if !contains(resp_users, users[i]) {
-			cmd := fmt.Sprint(`
+			cmd := fmt.Sprintf(`
 				DELETE FROM users
 				WHERE user_uri = %s
 			`, users[i])
@@ -264,6 +278,7 @@ func getUserUris() []string {
 		handleErr(err)
 		users = append(users, user_table)
 	}
+	user_rows.Close()
 	return users
 }
 
@@ -277,19 +292,29 @@ func getUserTables() []string {
 		handleErr(err)
 		users = append(users, user_table)
 	}
+	user_rows.Close()
 	return users
 }
 
-func updateActivityDbs() {
-	user_rows, err := db.Query("SELECT user_table from users")
+func getUserUrisTables() ([]string, []string) {
+	user_rows, err := db.Query("SELECT user_uri, user_table from users")
 	handleErr(err)
+	var user_uri string
 	var user_table string
+	uris := make([]string, 0)
 	users := make([]string, 0)
 	for user_rows.Next() {
-		err = user_rows.Scan(&user_table)
+		err = user_rows.Scan(&user_uri, &user_table)
 		handleErr(err)
+		uris = append(uris, user_uri)
 		users = append(users, user_table)
 	}
+	user_rows.Close()
+	return uris, users
+}
+
+func updateActivityDbs() {
+	users := getUserTables()
 	table_rows, err := db.Query("SELECT name from sqlite_schema where type ='table' AND name NOT LIKE 'sqlite_%'")
 	handleErr(err)
 	var table_name string
@@ -299,6 +324,7 @@ func updateActivityDbs() {
 		handleErr(err)
 		tables = append(tables, table_name)
 	}
+	table_rows.Close()
 	for i := 0; i < len(users); i++ {
 		user := strings.ReplaceAll(users[i], " ", "")
 		user = strings.ReplaceAll(user, ".", "")
@@ -330,26 +356,54 @@ func createActivityDb(user string) {
 }
 
 func cacheActivity() {
-	users := getUserTables()
-	cmd := fmt.Sprintf(`
-	INSERT OR REPLACE INTO %s (
-		user_uri,
-		user_name,
-		user_image,
-		user_table
-	) values(?, ?, ?, ?)
-	`)
-	stmt, err := db.Prepare(cmd)
+	uris, users := getUserUrisTables()
 	resp, err := callActivity()
 	handleErr(err)
 	for i := 0; i < len(users); i++ {
-		fmt.Println(resp.Friends[i].User.Name)
-		_, err := stmt.Exec(resp)
-		handleErr(err)
+		for j := 0; j < len(resp.Friends); j++ {
+			if uris[i] == resp.Friends[j].User.URI {
+				cmd := fmt.Sprintf(`
+				INSERT OR REPLACE INTO %s (
+					timestamp,
+					track_uri,
+					track_name,
+					track_image,
+					album_uri,
+					album_name,
+					artist_uri,
+					artist_name,
+					context_uri,
+					context_name,
+					content_index 
+				) values(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+				`, users[i])
+				stmt, err := db.Prepare(cmd)
+				handleErr(err)
+				_, err = stmt.Exec(
+					resp.Friends[j].Timestamp,
+					resp.Friends[j].Track.URI,
+					resp.Friends[j].Track.Name,
+					resp.Friends[j].Track.ImageURL,
+					resp.Friends[j].Track.Album.URI,
+					resp.Friends[j].Track.Album.Name,
+					resp.Friends[j].Track.Artist.URI,
+					resp.Friends[j].Track.Artist.Name,
+					resp.Friends[j].Track.Context.URI,
+					resp.Friends[j].Track.Context.Name,
+					resp.Friends[j].Track.Context.Index,
+				)
+				handleErr(err)
+			}
+		}
 	}
+	println("Cached activity!")
 }
 
-func getCachedActivity() (FriendActivity, error) {
+func getCachedActivity(ms int64) (FriendActivity, error) {
+	if ms == 0 {
+		now := time.Now()
+		ms = now.Unix() * 1000
+	}
 	user_rows, err := db.Query("SELECT user_table from users")
 	handleErr(err)
 	var user_table string
@@ -373,69 +427,67 @@ func getCachedActivity() (FriendActivity, error) {
 		var user_image string
 		for rows.Next() {
 			err = rows.Scan(&user_uri, &user_name, &user_image)
+			handleErr(err)
 		}
-		handleErr(err)
 		rows.Close()
-		cmd = fmt.Sprintf("SELECT * from %s ORDER BY timestamp DESC LIMIT 1", tables[i])
+		cmd = fmt.Sprintf("SELECT * from %s WHERE %v-timestamp>=0 ORDER BY timestamp DESC LIMIT 1", tables[i], ms)
+		rows, err = db.Query(cmd)
+		handleErr(err)
 		for rows.Next() {
-			rows, err = db.Query(cmd)
+			var timestamp int
+			var track_uri string
+			var track_name string
+			var track_image string
+			var album_uri string
+			var album_name string
+			var artist_uri string
+			var artist_name string
+			var context_uri string
+			var context_name string
+			var context_index int
+			err = rows.Scan(
+				&timestamp,
+				&track_uri,
+				&track_name,
+				&track_image,
+				&album_uri,
+				&album_name,
+				&artist_uri,
+				&artist_name,
+				&context_uri,
+				&context_name,
+				&context_index,
+			)
+			handleErr(err)
+			friend := Friend{
+				Timestamp: timestamp,
+				User: User{
+					URI:      user_uri,
+					Name:     user_name,
+					ImageURL: user_image,
+				},
+				Track: Track{
+					URI:      track_uri,
+					Name:     track_name,
+					ImageURL: track_image,
+					Album: Album{
+						URI:  album_uri,
+						Name: album_name,
+					},
+					Artist: Artist{
+						URI:  artist_uri,
+						Name: artist_name,
+					},
+					Context: Context{
+						URI:   context_uri,
+						Name:  context_name,
+						Index: context_index,
+					},
+				},
+			}
+			activity = append(activity, friend)
 		}
-		handleErr(err)
-		var timestamp int64
-		var track_uri string
-		var track_name string
-		var track_image string
-		var album_uri string
-		var album_name string
-		var artist_uri string
-		var artist_name string
-		var context_uri string
-		var context_name string
-		var context_index int
-		err = rows.Scan(
-			&timestamp,
-			&track_uri,
-			&track_name,
-			&track_image,
-			&album_uri,
-			&album_name,
-			&artist_uri,
-			&artist_name,
-			&context_uri,
-			&context_name,
-			&context_index,
-		)
-		println(user_name)
-		println(track_name)
-		handleErr(err)
 		rows.Close()
-		friend := Friend{
-			Timestamp: timestamp,
-			User: User{
-				URI:      user_uri,
-				Name:     user_name,
-				ImageURL: user_image,
-			},
-			Track: Track{
-				URI:      track_uri,
-				Name:     track_name,
-				ImageURL: track_image,
-				Album: Album{
-					URI:  album_uri,
-					Name: album_name,
-				},
-				Artist: Artist{
-					URI:  artist_uri,
-					Name: artist_name,
-				},
-				Context: Context{
-					URI:   context_uri,
-					Name:  context_name,
-					Index: context_index,
-				},
-			},
-		}
-		activity = append(activity, friend)
 	}
 	return FriendActivity{Friends: activity}, nil
 }
@@ -443,7 +495,7 @@ func getCachedActivity() (FriendActivity, error) {
 // Utility functions
 func handleErr(error error) {
 	if error != nil {
-		fmt.Println(error)
+		fmt.Println("Error: ", error)
 	}
 }
 
@@ -454,4 +506,10 @@ func contains(s []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func doEvery(d time.Duration, f func()) {
+	for range time.Tick(d) {
+		f()
+	}
 }

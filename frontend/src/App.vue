@@ -254,13 +254,16 @@ export default {
       }
     },
     loadStats() {
-      let url = window.location + "api/latest";
-      // let url = "http://192.168.1.52:10000/api/latest";
+      let url = window.location + "api/0";
+      // let url = "http://192.168.0.30:10000/api/0";
       axios
         .get(url)
         .then((response) => response.data)
         .then((data) => {
           this.listeningActivity = data;
+          this.listeningActivity.friends.sort((a, b) => {
+            return a.timestamp - b.timestamp;
+          });
         });
     },
     autoReload() {
