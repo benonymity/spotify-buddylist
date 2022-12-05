@@ -18,6 +18,7 @@ Run
 
 ```
 ./build.sh
+
 ```
 
 Then fill in your sp_dc token in `sp_dc.txt`
@@ -32,12 +33,12 @@ The page is now being served on `http://localhost:10000`
 
 ### Docker:
 
-Pull `benonymity/spotify-buddylist:latest` and run it with an environment variable SP_DC containing your token. Bind port 10000 to wherever you want to serve the webpage.
+Pull `benonymity/spotify-buddylist:latest` and run it with an environment variable SP_DC containing your token. Bind port 10000 to wherever you want to serve the webpage, and if you want to persist listening history bind `activity.db` to a local file.
 
 Example Docker command:
 
 ```
-docker run -d -p 10000:10000 --name spotify-buddylist benonymity/spotify-buddylist:latest
+docker run -d -p 10000:10000 -v spotify/activity.db:/activity.db --name spotify-buddylist benonymity/spotify-buddylist:latest
 ```
 
 # Getting your sp_dc token
@@ -46,6 +47,7 @@ Login to the [web player](https://open.spotify.com/) in an incognito window and 
 
 # Todo:
 
-- [ ] Cache API results in backend to avoid DDOS
-- [ ] Save history to DB and allow seeing past activity
+- [x] Cache API results in backend to avoid DDOS
+- [x] Save history to DB
+- [ ] Create UI for viewing past activity
 - [ ] Allow following of new users from webpage

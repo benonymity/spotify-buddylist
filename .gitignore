@@ -1,3 +1,5 @@
 .DS_Store
 sp_dc.txt
 config.txt
+api/activity.db
+api/server

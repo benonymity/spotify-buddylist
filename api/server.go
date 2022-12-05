@@ -95,7 +95,7 @@ func call(url, header string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		fmt.Println("Got error " + err.Error())
+		log.Println("Got error " + err.Error())
 		return err.Error(), errors.New("Error creating request")
 	}
 	if header == "Cookie" {
@@ -108,7 +108,7 @@ func call(url, header string) (string, error) {
 	}
 	response, err := client.Do(req)
 	if err != nil {
-		fmt.Println("Got error " + err.Error())
+		log.Println("Got error " + err.Error())
 		return err.Error(), errors.New("Request error")
 	}
 
@@ -494,7 +494,7 @@ func getCachedActivity(ms int64) (FriendActivity, error) {
 // Utility functions
 func handleErr(error error) {
 	if error != nil {
-		fmt.Println("Error: ", error)
+		log.Println("Error: ", error)
 	}
 }
 
