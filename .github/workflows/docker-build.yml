@@ -45,16 +45,6 @@ jobs:
         run: npm run build --if-present
         working-directory: frontend
 
-      - name: Setup Go
-        uses: actions/setup-go@v3
-
-        with:
-          go-version: 1.19
-
-      - name: Build Go
-        run: CGO_ENABLED=0 go build server.go
-        working-directory: api
-
       - name: Login to Dockerhub
         uses: docker/login-action@v2
         with:
