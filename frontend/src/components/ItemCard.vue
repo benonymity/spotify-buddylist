@@ -1,12 +1,12 @@
 <template>
-  <div className="friendactivity-content-bottom">
+  <div className="useractivity-content-bottom">
     <a
-      :href="'https://open.spotify.com/track/' + friend.track.uri.split(':')[2]"
+      :href="'https://open.spotify.com/track/' + item.track.uri.split(':')[2]"
       target="_blank"
-      ><div className="friendactivity-content-bottom-left">
+      ><div className="useractivity-content-bottom-left">
         <img
-          v-if="friend.user.imageUrl"
-          :src="friend.user.imageUrl"
+          v-if="item.track.imageUrl"
+          :src="item.track.imageUrl"
           alt="Profile"
         />
         <div v-else class="no-photo">
@@ -21,76 +21,51 @@
         <svg class="play" style="width: 24px; height: 24px" viewBox="0 0 24 24">
           <path fill="currentColor" d="M8,5.14V19.14L19,12.14L8,5.14Z" />
         </svg>
-        <svg
-          v-show="friend.timestamp > new Date().getTime() - friend.duration"
-          class="presence"
-          viewBox="0 0 20 20"
-        >
-          <circle fill="#000" cx="10" cy="10" r="5"></circle>
-          <circle fill="#4275CA" cx="10" cy="10" r="4"></circle>
-        </svg>
       </div>
     </a>
-    <div className="friendactivity-content-bottom-right">
-      <div className="friendactivity-content-bottom-right-user">
+    <div className="useractivity-content-bottom-right">
+      <div className="useractivity-content-bottom-right-user">
         <div style="width: 100%; display: flex; justify-content: space-between">
-          <span
-            ><a
-              :href="
-                'https://open.spotify.com/user/' + friend.user.uri.split(':')[2]
-              "
-              target="_blank"
-              >{{ friend.user.name }}
-            </a>
-          </span>
-          <div className="friendactivity-content-bottom-right-user-time">
-            <span
-              v-if="new Date().getTime() - friend.timestamp > friend.duration"
-              >{{ difference }}</span
-            >
-            <svg
-              v-else
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                fill="none"
-                stroke="#b3b3b3"
-                stroke-width="2"
-                d="M1 14V4m4 10V0m4 14v-4m4 4V7"
-              />
-            </svg>
-            <div className="friendactivity-content-bottom-tooltip">
+          <!-- <span -->
+          <!--   ><a -->
+          <!--     :href=" -->
+          <!--       'https://open.spotify.com/user/' + item.user.uri.split(':')[2] -->
+          <!--     " -->
+          <!--     target="_blank" -->
+          <!--     >{{ item.track.name }} -->
+          <!--   </a> -->
+          <!-- </span> -->
+          <div className="useractivity-content-bottom-right-user-time">
+            <span>{{ difference }}</span>
+            <div className="useractivity-content-bottom-tooltip">
               {{ prettyDate }}
             </div>
           </div>
         </div>
       </div>
-      <div className="friendactivity-content-bottom-right-song">
+      <div className="useractivity-content-bottom-right-song">
         <a
           :href="
-            'https://open.spotify.com/track/' + friend.track.uri.split(':')[2]
+            'https://open.spotify.com/track/' + item.track.uri.split(':')[2]
           "
           target="_blank"
-          >{{ friend.track.name }}</a
+          >{{ item.track.name }}</a
         >
         <span> • </span>
         <a
           :href="
             'https://open.spotify.com/artist/' +
-            friend.track.artist.uri.split(':')[2]
+            item.track.artist.uri.split(':')[2]
           "
           target="_blank"
-          >{{ friend.track.artist.name }}</a
+          >{{ item.track.artist.name }}</a
         >
       </div>
-      <div className="friendactivity-content-bottom-right-line">
-        <div className="friendactivity-content-bottom-right-album">
-          <div className="friendactivity-content-bottom-right-album-icon">
+      <div className="useractivity-content-bottom-right-line">
+        <div className="useractivity-content-bottom-right-album">
+          <div className="useractivity-content-bottom-right-album-icon">
             <svg
-              v-if="friend.track.context.uri.split(':')[1] == 'album'"
+              v-if="item.track.context.uri.split(':')[1] == 'album'"
               width="14"
               height="14"
               viewBox="0 0 22 22"
@@ -114,7 +89,7 @@
               />
             </svg>
             <svg
-              v-if="friend.track.context.uri.split(':')[1] == 'playlist'"
+              v-if="item.track.context.uri.split(':')[1] == 'playlist'"
               style="width: 12px; height: 12px; margin-top: 2px"
               viewBox="0 0 32 32"
               xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +102,7 @@
               />
             </svg>
             <svg
-              v-if="friend.track.context.uri.split(':')[1] == 'artist'"
+              v-if="item.track.context.uri.split(':')[1] == 'artist'"
               fill="#b3b3b3"
               width="12"
               height="13.3333"
@@ -142,16 +117,16 @@
               />
             </svg>
           </div>
-          <div className="friendactivity-content-bottom-right-album-name">
+          <div className="useractivity-content-bottom-right-album-name">
             <a
               :href="
                 'https://open.spotify.com/' +
-                friend.track.context.uri.split(':')[1] +
+                item.track.context.uri.split(':')[1] +
                 '/' +
-                friend.track.context.uri.split(':')[2]
+                item.track.context.uri.split(':')[2]
               "
               target="_blank"
-              >{{ friend.track.context.name }}</a
+              >{{ item.track.context.name }}</a
             >
           </div>
         </div>
@@ -163,7 +138,7 @@
 <script>
 export default {
   props: {
-    friend: {
+    item: {
       required: true,
       type: Object,
     },
@@ -171,7 +146,7 @@ export default {
   computed: {
     difference() {
       let difference = Math.round(
-        (new Date().getTime() - this.friend.timestamp) / 60000
+        (new Date().getTime() - this.item.timestamp) / 60000
       );
       if (difference < 60) {
         return String(difference) + " min";
@@ -184,7 +159,7 @@ export default {
       }
     },
     prettyDate() {
-      let date = new Date(this.friend.timestamp);
+      let date = new Date(this.item.timestamp);
       var year = date.getFullYear();
       var month = date.getMonth();
       var day = date.getDate();
@@ -210,7 +185,7 @@ export default {
 </script>
 
 <style>
-.friendactivity-content-bottom {
+.useractivity-content-bottom {
   display: flex;
   align-items: center;
   margin-top: 6px;
@@ -218,27 +193,27 @@ export default {
   font-size: 1.2em;
   font-family: spotify-font;
 }
-.friendactivity-content-bottom-left {
+.useractivity-content-bottom-left {
   width: 42px;
   height: 42px;
   margin-right: 12px;
   position: relative;
 }
-.friendactivity-content-bottom-left img {
+.useractivity-content-bottom-left img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 10%;
 }
-.friendactivity-content-bottom-left:hover img {
+.useractivity-content-bottom-left:hover img {
   opacity: 50%;
 }
-.friendactivity-content-bottom-left .play {
+.useractivity-content-bottom-left .play {
   position: absolute;
   top: 9px;
   left: 9px;
   opacity: 0;
 }
-.friendactivity-content-bottom-left .presence {
+.useractivity-content-bottom-left .presence {
   opacity: 100%;
   position: absolute;
   width: 24px;
@@ -247,10 +222,10 @@ export default {
   left: 25px;
   z-index: 3;
 }
-.friendactivity-content-bottom-left:hover .play {
+.useractivity-content-bottom-left:hover .play {
   opacity: 100%;
 }
-.friendactivity-content-bottom-left .no-photo {
+.useractivity-content-bottom-left .no-photo {
   background-color: #282828;
   width: 42px;
   height: 42px;
@@ -259,10 +234,10 @@ export default {
   align-items: center;
   justify-content: center;
 }
-.friendactivity-content-bottom-right {
+.useractivity-content-bottom-right {
   color: #9a9a9a;
 }
-.friendactivity-content-bottom-right-user {
+.useractivity-content-bottom-right-user {
   font-size: 1em;
   font-weight: 700;
   margin-bottom: 4px;
@@ -270,29 +245,29 @@ export default {
   color: #fff;
   justify-content: space-between;
 }
-.friendactivity-content-bottom-right-user-time {
+.useractivity-content-bottom-right-user-time {
   color: #9a9a9a;
   font-size: 0.7em;
   font-weight: 500;
   position: relative;
 }
-.friendactivity-content-bottom-right-user div {
+.useractivity-content-bottom-right-user div {
   margin-right: 10px;
   justify-content: space-between;
 }
-.friendactivity-content-bottom-right-user-icon {
+.useractivity-content-bottom-right-user-icon {
   margin-left: auto;
   margin-right: -20px;
   width: 16px;
   height: 16px;
   color: #9a9a9a;
 }
-.friendactivity-content-bottom-right-song,
-.friendactivity-content-bottom-right-artist,
-.friendactivity-content-bottom-right-album {
+.useractivity-content-bottom-right-song,
+.useractivity-content-bottom-right-artist,
+.useractivity-content-bottom-right-album {
   font-size: 0.82em;
 }
-.friendactivity-content-bottom-right-song {
+.useractivity-content-bottom-right-song {
   margin-bottom: 3px;
   width: 260px;
   height: 20px;
@@ -301,10 +276,10 @@ export default {
   white-space: nowrap;
   text-align: left;
 }
-.friendactivity-content-bottom-right-artist {
+.useractivity-content-bottom-right-artist {
   margin-bottom: 8px;
 }
-.friendactivity-content-bottom-right-album {
+.useractivity-content-bottom-right-album {
   padding-right: 24px;
   width: 255px;
   display: flex;
@@ -315,17 +290,17 @@ export default {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.friendactivity-content-bottom-right-album-name {
+.useractivity-content-bottom-right-album-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.friendactivity-content-bottom-right-album-icon {
+.useractivity-content-bottom-right-album-icon {
   margin-right: 6px;
   width: 16px;
   height: 16px;
 }
-.friendactivity-content-bottom-tooltip {
+.useractivity-content-bottom-tooltip {
   position: absolute;
   opacity: 0;
   display: block;
@@ -339,8 +314,8 @@ export default {
   text-align: center;
   background-color: #373737;
 }
-.friendactivity-content-bottom-right-user-time:hover
-  .friendactivity-content-bottom-tooltip {
+.useractivity-content-bottom-right-user-time:hover
+  .useractivity-content-bottom-tooltip {
   transition: opacity 0.1s ease-in;
   transition: all 0.2s cubic-bezier(0.55, 0, 0.1, 1);
   opacity: 75%;

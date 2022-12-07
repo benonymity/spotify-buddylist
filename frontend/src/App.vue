@@ -2,6 +2,29 @@
   <div className="friendactivity">
     <div ref="unfocus" className="friendactivity-content">
       <div className="friendactivity-content-top">Spotify Friend Activity</div>
+      <div className="friendactivity-content-top-wrap">
+        <button
+          v-if="focus"
+          @click="
+            focus = false;
+            loadStats();
+          "
+          className="friendactivity-content-top-close"
+        >
+          <svg
+            width="24"
+            height="24"
+            viewBox="0 0 30 30"
+            xmlns="http://www.w3.org/2000/svg"
+            style="overflow: visible"
+          >
+            <path
+              stroke="#b3b3b3"
+              d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm0 10.293l5.293-5.293.707.707-5.293 5.293 5.293 5.293-.707.707-5.293-5.293-5.293 5.293-.707-.707 5.293-5.293-5.293-5.293.707-.707 5.293 5.293z"
+            />
+          </svg>
+        </button>
+      </div>
       <div v-if="listeningActivity.length > 0">
         <TransitionGroup name="fade">
           <div v-for="friend in listeningActivity" :key="friend.user.uid">
@@ -11,14 +34,36 @@
                 refresh = false;
                 focus = true;
                 listeningActivity = [friend];
+                user = friend.user.uri.split(':')[2];
+                loadUserStats();
               "
               className="friendactivity-content-button"
             >
               <user-card :friend="friend" />
             </button>
-            <user-card v-if="focus" :friend="friend" />
+            <button v-else className="friendactivity-content-button-secondary">
+              <div>
+                <user-card style="margin-bottom: 14px" :friend="friend" />
+                <div
+                  style="border-bottom: 2px solid #282828; margin-bottom: 14px"
+                ></div>
+              </div>
+            </button>
           </div>
         </TransitionGroup>
+      </div>
+      <div v-if="focus && userActivity.length > 0">
+        <div
+          v-for="(item, index) in userActivity"
+          className="friendactivity-content-items"
+          :key="item.track.uri"
+        >
+          <item-card :style="marginStyle(index)" :item="item" />
+          <div :style="lineStyle(index)" className="line" />
+        </div>
+      </div>
+      <div v-if="focus && userActivity.length == 0">
+        Whoops, looks like there is no historical listening data for this user!
       </div>
     </div>
   </div>
@@ -27,12 +72,14 @@
 <script>
 import axios from "axios";
 import UserCard from "./components/UserCard.vue";
+import ItemCard from "./components/ItemCard.vue";
 
 export default {
   data() {
     return {
       listeningActivity: [],
-      refresh: true,
+      userActivity: [],
+      user: "",
       search: "",
       searching: false,
       focus: false,
@@ -40,25 +87,39 @@ export default {
   },
   components: {
     UserCard,
+    ItemCard,
   },
   methods: {
     loadStats() {
       // let url = window.location + "api/0";
-      if (this.refresh == false) {
+      if (this.focus == true) {
         return;
       }
-      let url = "http://192.168.0.30:10000/api/0";
+      let url = "http://192.168.0.30:10000/api/latest";
       axios
         .get(url)
         .then((response) => response.data)
         .then((data) => {
           this.listeningActivity = data.friends;
-          this.listeningActivity
-            .sort((a, b) => {
-              return a.timestamp - b.timestamp;
-            })
-            .reverse();
+          this.listeningActivity.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+          });
           this.loaded = true;
+        });
+    },
+    loadUserStats() {
+      // let url = window.location + "api/0";
+      let url = "http://192.168.0.30:10000/api/" + this.user;
+      axios
+        .get(url)
+        .then((response) => response.data)
+        .then((data) => {
+          this.userActivity = data.activity;
+          this.userActivity
+            .sort((a, b) => {
+              return b.timestamp - a.timestamp;
+            })
+            .shift();
         });
     },
     autoReload() {
@@ -79,6 +140,42 @@ export default {
       } else {
         this.searching = true;
         // Search logic here
+      }
+    },
+    lineStyle(i) {
+      if (this.userActivity.length == 0) {
+        return "";
+      } else if (i == this.userActivity.length - 1) {
+        return "";
+      }
+      let item = this.userActivity[i];
+      let diff =
+        item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
+      console.log(diff);
+      if (diff > 5000) {
+        return "border: dashed 1.5px #383838; height: 90px; top: 55px";
+      } else if (diff < 0) {
+        return "border: solid 1.5px #A52A2A	; height: 70px; top: 55px";
+      } else {
+        return "border: solid 1.5px #383838; height: 70px; top: 55px";
+      }
+    },
+    marginStyle(i) {
+      if (this.userActivity.length == 0) {
+        return "";
+      } else if (i == this.userActivity.length - 1) {
+        return "";
+      }
+      let item = this.userActivity[i];
+      let diff =
+        item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
+      console.log(diff);
+      if (diff > 5000) {
+        return "margin-bottom: 60px";
+      } else if (diff < 0) {
+        return "margin-bottom: 20px";
+      } else {
+        return "margin-bottom: 30px";
       }
     },
   },
@@ -146,16 +243,44 @@ a:hover {
   padding-bottom: 12px;
 }
 
+.friendactivity-content-top-wrap {
+  position: relative;
+  left: 120px;
+}
+.friendactivity-content-top-close {
+  position: absolute;
+  opacity: 50%;
+  top: -33px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.friendactivity-content-top-close:hover {
+  opacity: 100%;
+  transition: opacity 0.1s ease-in;
+}
+
 .friendactivity-content-button {
   background-color: #121212;
   border: none;
   cursor: pointer;
-  margin-top: 8px;
-  border-radius: 1rem;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  border-radius: 0.6rem;
+  border: none;
 }
 
 .friendactivity-content-button:hover {
   background-color: #282828;
+}
+
+.friendactivity-content-button-secondary {
+  background-color: #121212;
+  border: none;
+  margin-top: 7px;
+  margin-bottom: 7px;
+  border-radius: 0.6rem;
 }
 
 .friendactivity-content-line {
@@ -200,16 +325,29 @@ a:hover {
 .fade-move,
 .fade-enter-active,
 .fade-leave-active {
-  transition: all 0.2s cubic-bezier(0.55, 0, 0.1, 1);
 }
 
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
-  transform: scaleY(0.01) translate(30px, 0);
 }
 
 .fade-leave-active {
   position: absolute;
+}
+
+::-webkit-scrollbar {
+  width: 0em;
+  height: 0em;
+}
+
+.friendactivity-content-items {
+  position: relative;
+  margin-top: 20px;
+}
+
+.line {
+  position: absolute;
+  left: 20px;
 }
 </style>
