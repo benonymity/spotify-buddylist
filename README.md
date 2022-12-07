@@ -18,7 +18,6 @@ Run
 
 ```
 ./build.sh
-
 ```
 
 Then fill in your sp_dc token in `sp_dc.txt`
@@ -49,5 +48,5 @@ Login to the [web player](https://open.spotify.com/) in an incognito window and 
 
 - [x] Cache API results in backend to avoid DDOS
 - [x] Save history to DB
-- [ ] Create UI for viewing past activity
+- [x] Create UI for viewing past activity
 - [ ] Allow following of new users from webpage
