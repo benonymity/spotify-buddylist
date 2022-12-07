@@ -91,7 +91,7 @@ export default {
   },
   methods: {
     loadStats() {
-      let url = window.location + "api/0";
+      let url = window.location + "api/latest";
       if (this.focus == true) {
         return;
       }
@@ -108,7 +108,7 @@ export default {
         });
     },
     loadUserStats() {
-      let url = window.location + "api/0";
+      let url = window.location + "api/" + this.user;
       // let url = "http://192.168.0.30:10000/api/" + this.user;
       axios
         .get(url)
