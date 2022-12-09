@@ -215,7 +215,7 @@ export default {
   align-items: center;
   margin-top: 6px;
   margin-bottom: 6px;
-  font-size: 1.2em;
+  font-size: 1.3em;
   font-family: spotify-font;
 }
 .friendactivity-content-bottom-left {
@@ -329,9 +329,8 @@ export default {
   position: absolute;
   opacity: 0;
   display: block;
-  left: -10px;
+  left: -20px;
   padding-left: 4px;
-  padding-right: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
   color: #ffffff;

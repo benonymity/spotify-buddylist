@@ -26,15 +26,6 @@
     <div className="useractivity-content-bottom-right">
       <div className="useractivity-content-bottom-right-user">
         <div style="width: 100%; display: flex; justify-content: space-between">
-          <!-- <span -->
-          <!--   ><a -->
-          <!--     :href=" -->
-          <!--       'https://open.spotify.com/user/' + item.user.uri.split(':')[2] -->
-          <!--     " -->
-          <!--     target="_blank" -->
-          <!--     >{{ item.track.name }} -->
-          <!--   </a> -->
-          <!-- </span> -->
           <div className="useractivity-content-bottom-right-user-time">
             <span>{{ difference }}</span>
             <div className="useractivity-content-bottom-tooltip">
@@ -227,7 +218,6 @@ export default {
 }
 .useractivity-content-bottom-left .no-photo {
   background-color: #282828;
-  width: 42px;
   height: 42px;
   border-radius: 50%;
   display: flex;
@@ -252,7 +242,6 @@ export default {
   position: relative;
 }
 .useractivity-content-bottom-right-user div {
-  margin-right: 10px;
   justify-content: space-between;
 }
 .useractivity-content-bottom-right-user-icon {
@@ -280,7 +269,6 @@ export default {
   margin-bottom: 8px;
 }
 .useractivity-content-bottom-right-album {
-  padding-right: 24px;
   width: 255px;
   display: flex;
   justify-content: left;
@@ -304,9 +292,8 @@ export default {
   position: absolute;
   opacity: 0;
   display: block;
-  left: -10px;
+  left: -20px;
   padding-left: 4px;
-  padding-right: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
   color: #ffffff;

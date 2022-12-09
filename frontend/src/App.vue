@@ -2,69 +2,62 @@
   <div className="friendactivity">
     <div ref="unfocus" className="friendactivity-content">
       <div className="friendactivity-content-top">Spotify Friend Activity</div>
-      <div className="friendactivity-content-top-wrap">
-        <button
-          v-if="focus"
-          @click="
-            focus = false;
-            loadStats();
-          "
-          className="friendactivity-content-top-close"
-        >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 30 30"
-            xmlns="http://www.w3.org/2000/svg"
-            style="overflow: visible"
+      <transition name="name">
+        <div v-if="userActivity.length" className="friendactivity-content-top-wrap">
+          <span>{{ user.user.name }}</span>
+          <button
+            @click="endFocus()"
+            className="friendactivity-content-top-close"
           >
-            <path
-              stroke="#b3b3b3"
-              d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm0 10.293l5.293-5.293.707.707-5.293 5.293 5.293 5.293-.707.707-5.293-5.293-5.293 5.293-.707-.707 5.293-5.293-5.293-5.293.707-.707 5.293 5.293z"
-            />
-          </svg>
-        </button>
-      </div>
-      <div v-if="listeningActivity.length > 0">
-        <TransitionGroup name="fade">
-          <div v-for="friend in listeningActivity" :key="friend.user.uid">
-            <button
-              v-if="!focus"
-              @click="
-                refresh = false;
-                focus = true;
-                listeningActivity = [friend];
-                user = friend.user.uri.split(':')[2];
-                loadUserStats();
-              "
-              className="friendactivity-content-button"
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 30 30"
+              xmlns="http://www.w3.org/2000/svg"
+              style="overflow: visible"
             >
-              <user-card :friend="friend" />
-            </button>
-            <button v-else className="friendactivity-content-button-secondary">
-              <div>
-                <user-card style="margin-bottom: 14px" :friend="friend" />
-                <div
-                  style="border-bottom: 2px solid #282828; margin-bottom: 14px"
-                ></div>
-              </div>
-            </button>
+              <path
+                stroke="#b3b3b3"
+                d="M12 0c6.623 0 12 5.377 12 12s-5.377 12-12 12-12-5.377-12-12 5.377-12 12-12zm0 1c6.071 0 11 4.929 11 11s-4.929 11-11 11-11-4.929-11-11 4.929-11 11-11zm0 10.293l5.293-5.293.707.707-5.293 5.293 5.293 5.293-.707.707-5.293-5.293-5.293 5.293-.707-.707 5.293-5.293-5.293-5.293.707-.707 5.293 5.293z"
+              />
+            </svg>
+          </button>
+          <div
+            style="border-bottom: 2px solid #282828; margin-bottom: 14px">
           </div>
-        </TransitionGroup>
-      </div>
-      <div v-if="focus && userActivity.length > 0">
+        </div>
+      </transition>
+      <TransitionGroup name="fade">
+        <div
+          v-for="(friend, index) in listeningActivity"
+          :key="index + 'div'"
+        >
+          <button
+            :key="index + 'button'"
+            @click="startFocus(friend)"
+            className="friendactivity-content-button"
+          >
+            <user-card :key="index" :friend="friend" />
+          </button>
+        </div>
+      </TransitionGroup>
+      <TransitionGroup name="move">
         <div
           v-for="(item, index) in userActivity"
           className="friendactivity-content-items"
           :key="item.track.uri"
         >
-          <item-card :style="marginStyle(index)" :item="item" />
-          <div :style="lineStyle(index)" className="line" />
+          <item-card :style="marginStyle(index)" :key="index" :item="item" />
+          <div
+            :style="lineStyle(index)"
+            :key="index + 'line'"
+            className="line"
+          />
         </div>
-      </div>
-      <div v-if="focus && userActivity.length == 0">
-        Whoops, looks like there is no historical listening data for this user!
-      </div>
+      </TransitionGroup>
+      <!-- <div v-if="!transition && focus && userActivity.length == 0"> -->
+      <!--   Whoops, looks like there is no historical listening data for this user! -->
+      <!-- </div> -->
     </div>
   </div>
 </template>
@@ -83,6 +76,7 @@ export default {
       search: "",
       searching: false,
       focus: false,
+      transition: false
     };
   },
   components: {
@@ -95,7 +89,6 @@ export default {
       if (this.focus == true) {
         return;
       }
-      // let url = "http://192.168.0.30:10000/api/latest";
       axios
         .get(url)
         .then((response) => response.data)
@@ -109,7 +102,6 @@ export default {
     },
     loadUserStats() {
       let url = window.location + "api/" + this.user;
-      // let url = "http://192.168.0.30:10000/api/" + this.user;
       axios
         .get(url)
         .then((response) => response.data)
@@ -124,8 +116,38 @@ export default {
     },
     autoReload() {
       if (!document.hidden) {
-        this.loadStats();
+        if (!this.focus) {
+          this.loadStats();
+        } else {
+          this.loadUserStats();
+        }
       }
+    },
+    startFocus(friend) {
+      this.transition = true;
+      this.focus = false;
+      this.listeningActivity = [];
+      this.user = friend;
+      setTimeout(() => {
+        this.loadUserStats();
+      }, 500);
+      setTimeout(() => {
+        this.focus = true;
+        this.transition = false;
+      }, 900);
+    },
+    endFocus() {
+      this.transition = true;
+      this.focus = true;
+      this.userActivity = [];
+      this.user = null;
+      setTimeout(() => {
+        this.focus = false;
+      }, 500);
+      setTimeout(() => {
+        this.loadStats();
+        this.transition = false;
+      }, 900);
     },
     focusSearchbar() {
       this.$refs.searchbox.focus();
@@ -151,7 +173,6 @@ export default {
       let item = this.userActivity[i];
       let diff =
         item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
-      console.log(diff);
       if (diff > 5000) {
         return "border: dashed 1.5px #383838; height: 90px; top: 55px";
       } else if (diff < 0) {
@@ -169,7 +190,6 @@ export default {
       let item = this.userActivity[i];
       let diff =
         item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
-      console.log(diff);
       if (diff > 5000) {
         return "margin-bottom: 60px";
       } else if (diff < 0) {
@@ -205,6 +225,7 @@ export default {
 html {
   background-color: #121212;
   font-family: spotify-font;
+  overflow-x: hidden;
 }
 
 @font-face {
@@ -245,12 +266,19 @@ a:hover {
 
 .friendactivity-content-top-wrap {
   position: relative;
-  left: 120px;
+  padding-top: 20px;
 }
+
+.friendactivity-content-top-wrap span {
+  text-align: center;
+  position: relative;
+  top: -8px;
+  color: grey
+}
+
 .friendactivity-content-top-close {
-  position: absolute;
+  position: relative;
   opacity: 50%;
-  top: -33px;
   background: none;
   border: none;
   cursor: pointer;
@@ -323,8 +351,9 @@ a:hover {
 }
 
 .fade-move,
-.fade-enter-active,
-.fade-leave-active {
+.fade-leave-active,
+.fade-enter-active {
+  transition: all 0.5s ease;
 }
 
 .fade-enter-from,
@@ -333,6 +362,38 @@ a:hover {
 }
 
 .fade-leave-active {
+  position: absolute;
+}
+
+.move-move,
+.move.leave.active,
+.move-enter-active {
+  transition: all 0.5s ease;
+}
+
+.move-enter-from,
+.move-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.move-leave-active {
+  position: absolute;
+}
+
+.name-move,
+.name.leave.active,
+.name-enter-active {
+  transition: all 0.5s ease;
+}
+
+.name-enter-from,
+.name-leave-to {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.name-leave-active {
   position: absolute;
 }
 
