@@ -3,7 +3,10 @@
     <div ref="unfocus" className="friendactivity-content">
       <div className="friendactivity-content-top">Spotify Friend Activity</div>
       <transition name="name">
-        <div v-if="userActivity.length" className="friendactivity-content-top-wrap">
+        <div
+          v-if="userActivity.length"
+          className="friendactivity-content-top-wrap"
+        >
           <span>{{ user.user.name }}</span>
           <button
             @click="endFocus()"
@@ -23,15 +26,12 @@
             </svg>
           </button>
           <div
-            style="border-bottom: 2px solid #282828; margin-bottom: 14px">
-          </div>
+            style="border-bottom: 2px solid #282828; margin-bottom: 14px"
+          ></div>
         </div>
       </transition>
       <TransitionGroup name="fade">
-        <div
-          v-for="(friend, index) in listeningActivity"
-          :key="index + 'div'"
-        >
+        <div v-for="(friend, index) in listeningActivity" :key="index + 'div'">
           <button
             :key="index + 'button'"
             @click="startFocus(friend)"
@@ -76,7 +76,7 @@ export default {
       search: "",
       searching: false,
       focus: false,
-      transition: false
+      transition: false,
     };
   },
   components: {
@@ -101,7 +101,7 @@ export default {
         });
     },
     loadUserStats() {
-      let url = window.location + "api/" + this.user;
+      let url = window.location + "api/" + this.user.user.uri.split(":")[2];
       axios
         .get(url)
         .then((response) => response.data)
@@ -273,7 +273,7 @@ a:hover {
   text-align: center;
   position: relative;
   top: -8px;
-  color: grey
+  color: grey;
 }
 
 .friendactivity-content-top-close {
