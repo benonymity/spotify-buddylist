@@ -292,19 +292,20 @@ export default {
   position: absolute;
   opacity: 0;
   display: block;
-  left: -20px;
   padding-left: 4px;
+  padding-right: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
   color: #ffffff;
   border-radius: 0.3em;
   text-align: center;
-  background-color: #373737;
+  background-color: #272727;
 }
 .useractivity-content-bottom-right-user-time:hover
   .useractivity-content-bottom-tooltip {
   transition: opacity 0.1s ease-in;
+  transition: opacity 0.1s ease-out;
   transition: all 0.2s cubic-bezier(0.55, 0, 0.1, 1);
-  opacity: 75%;
+  opacity: 85%;
 }
 </style>

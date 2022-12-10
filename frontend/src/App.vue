@@ -48,11 +48,11 @@
           :key="item.track.uri"
         >
           <item-card :style="marginStyle(index)" :key="index" :item="item" />
-          <div
-            :style="lineStyle(index)"
-            :key="index + 'line'"
-            className="line"
-          />
+          <!-- <div -->
+          <!--   :style="lineStyle(index)" -->
+          <!--   :key="index + 'line'" -->
+          <!--   className="line" -->
+          <!-- /> -->
         </div>
       </TransitionGroup>
       <!-- <div v-if="!transition && focus && userActivity.length == 0"> -->
@@ -107,11 +107,9 @@ export default {
         .then((response) => response.data)
         .then((data) => {
           this.userActivity = data.activity;
-          this.userActivity
-            .sort((a, b) => {
-              return b.timestamp - a.timestamp;
-            })
-            .shift();
+          this.userActivity.sort((a, b) => {
+            return b.timestamp - a.timestamp;
+          });
         });
     },
     autoReload() {
@@ -140,12 +138,13 @@ export default {
       this.transition = true;
       this.focus = true;
       this.userActivity = [];
+      this.friendactivity = [];
       this.user = null;
+      this.loadStats();
       setTimeout(() => {
         this.focus = false;
       }, 500);
       setTimeout(() => {
-        this.loadStats();
         this.transition = false;
       }, 900);
     },

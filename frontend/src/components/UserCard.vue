@@ -330,7 +330,6 @@ export default {
   opacity: 0;
   display: block;
   left: -20px;
-  padding-left: 4px;
   padding-top: 4px;
   padding-bottom: 4px;
   color: #ffffff;
