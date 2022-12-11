@@ -1,4 +1,4 @@
-module example.com/m
+module example.com/spotify-buddylist-api
 
 go 1.19
 

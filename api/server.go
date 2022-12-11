@@ -18,11 +18,12 @@ import (
 	"time"
 )
 
+// MARK: Global variable declarations
 var sp_dc string
 var token string
 var db *sql.DB
 
-// Main functions
+// MARK: Main function
 func main() {
 	var err error
 	db, err = sql.Open("sqlite3", "./activity.db")
@@ -38,7 +39,7 @@ func main() {
 	}
 }
 
-// Data models
+// MARK: Data models
 type TokenResponse struct {
 	ClientId                         string `json:"clientId"`
 	AccessToken                      string `json:"accessToken"`
@@ -196,7 +197,7 @@ func call(url, header string) (string, error) {
 	}
 }
 
-// Misc functions
+// MARK: Misc functions
 func get_spdc() {
 	if _, err := os.Stat("/.dockerenv"); errors.Is(err, os.ErrNotExist) {
 		file, err := os.Open("../sp_dc.txt")
@@ -209,6 +210,7 @@ func get_spdc() {
 	}
 }
 
+// Get a new temporary access_token
 func refreshToken() {
 	response, err := call("https://open.spotify.com/get_access_token?reason=transport&productType=web_player", "Cookie")
 	handleErr(err)
@@ -217,6 +219,7 @@ func refreshToken() {
 	token = resp_json.AccessToken
 }
 
+// Call Spotify's buddylist API
 func callActivity() (FriendActivity, error) {
 	response, err := call("https://guc-spclient.spotify.com/presence-view/v1/buddylist", "Auth")
 	var resp_struct FriendActivity
@@ -229,6 +232,7 @@ func callActivity() (FriendActivity, error) {
 	}
 }
 
+// Get more info on a track from Spotify's API
 func getTrackInfo(id string) (TrackInfo, error) {
 	url := fmt.Sprintf("https://api.spotify.com/v1/tracks/%s", id)
 	response, err := call(url, "Auth")
@@ -267,6 +271,7 @@ func userActivityResponse(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// Get latest activity from DB
 func latestActivityResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
@@ -277,6 +282,7 @@ func latestActivityResponse(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, string(resp_json))
 }
 
+// Still unused, but could notify the frontend of disabled history or no adding of new users
 func configResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
@@ -292,6 +298,7 @@ func configResponse(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Where to send requests
 func handleRequests() {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/latest", latestActivityResponse)
@@ -306,7 +313,7 @@ func handleRequests() {
 	http.ListenAndServe(":10000", router)
 }
 
-// Database functions
+// MARK: Database functions
 func handleDb() {
 	if db != nil {
 		str := `
@@ -335,6 +342,7 @@ func refresh() {
 	}
 }
 
+// Update user table with API call
 func updateUserDb() bool {
 	callActivity()
 	resp, err := callActivity()
@@ -377,6 +385,7 @@ func updateUserDb() bool {
 	return updated
 }
 
+// Get all active user URIs
 func getUserUris() []string {
 	user_rows, err := db.Query("SELECT user_uri from users")
 	handleErr(err)
@@ -391,6 +400,7 @@ func getUserUris() []string {
 	return users
 }
 
+// Get all user tables
 func getUserTables() []string {
 	user_rows, err := db.Query("SELECT user_table from users")
 	handleErr(err)
@@ -405,6 +415,7 @@ func getUserTables() []string {
 	return users
 }
 
+// Get all active users and their tables
 func getUserUrisTables() ([]string, []string) {
 	user_rows, err := db.Query("SELECT user_uri, user_table from users")
 	handleErr(err)
@@ -422,6 +433,7 @@ func getUserUrisTables() ([]string, []string) {
 	return uris, users
 }
 
+// Sync tables to latest API call
 func updateActivityDbs() {
 	users := getUserTables()
 	table_rows, err := db.Query("SELECT name from sqlite_schema where type ='table' AND name NOT LIKE 'sqlite_%'")
@@ -443,6 +455,7 @@ func updateActivityDbs() {
 	}
 }
 
+// Manage new user table creation
 func createActivityDb(user string) {
 	str := `
 	CREATE TABLE IF NOT EXISTS %s (
@@ -465,6 +478,7 @@ func createActivityDb(user string) {
 	handleErr(err)
 }
 
+// Save activity from API call
 func cacheActivity() {
 	uris, users := getUserUrisTables()
 	resp, err := callActivity()
@@ -514,6 +528,7 @@ func cacheActivity() {
 	}
 }
 
+// Get latest activity for all users
 func getLatestCachedActivity() (FriendActivity, error) {
 	user_rows, err := db.Query("SELECT user_table from users")
 	handleErr(err)
@@ -570,14 +585,14 @@ func getLatestCachedActivity() (FriendActivity, error) {
 	return FriendActivity{Friends: activity}, nil
 }
 
+// Gets all activity (or paginated activity) for a specific user
 func getUserCachedActivity(user string, page int) (UserActivity, error) {
 	var cmd string
 	if page == -1 {
-		cmd = fmt.Sprintf("SELECT * from user%s", user)
+		cmd = fmt.Sprintf("SELECT * from user%s ORDER BY timestamp DESC", user)
 	} else {
 		cmd = fmt.Sprintf("SELECT * from user%s ORDER BY timestamp DESC LIMIT 20 OFFSET %v", user, page*20)
 	}
-	println(cmd)
 	rows, err := db.Query(cmd)
 	handleErr(err)
 	activity := make([]Activity, 0)
@@ -610,7 +625,7 @@ func getUserCachedActivity(user string, page int) (UserActivity, error) {
 
 }
 
-// Utility functions
+// MARK: Utility functions
 func handleErr(error error) {
 	if error != nil {
 		log.Println("Error: ", error)
