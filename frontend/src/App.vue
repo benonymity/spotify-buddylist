@@ -7,7 +7,7 @@
           v-if="userActivity.length"
           className="friendactivity-content-top-wrap"
         >
-          <span>{{ user.user.name }}</span>
+          <span style="left: 10px">{{ user.user.name }}</span>
           <button
             @click="endFocus()"
             className="friendactivity-content-top-close"
@@ -41,23 +41,27 @@
           </button>
         </div>
       </TransitionGroup>
-      <TransitionGroup name="move">
-        <div
-          v-for="(item, index) in userActivity"
-          className="friendactivity-content-items"
-          :key="item.track.uri"
-        >
+      <TransitionGroup name="fade">
+        <div v-for="(item, index) in userActivity" :key="index + 'div'">
           <item-card :style="marginStyle(index)" :key="index" :item="item" />
-          <!-- <div -->
-          <!--   :style="lineStyle(index)" -->
-          <!--   :key="index + 'line'" -->
-          <!--   className="line" -->
-          <!-- /> -->
+          <div className="friendactivity-content-items">
+            <div
+              :style="lineStyle(index)"
+              :key="index + 'line'"
+              className="line"
+            />
+          </div>
         </div>
+        <infinite-loading
+          v-if="userActivity.length"
+          @infinite="infiniteHandler"
+          spinner="spiral"
+        >
+        </infinite-loading>
       </TransitionGroup>
-      <!-- <div v-if="!transition && focus && userActivity.length == 0"> -->
-      <!--   Whoops, looks like there is no historical listening data for this user! -->
-      <!-- </div> -->
+      <div v-if="focus && userActivity.length == 0">
+        Whoops, looks like there is no historical listening data for this user!
+      </div>
     </div>
   </div>
 </template>
@@ -66,6 +70,7 @@
 import axios from "axios";
 import UserCard from "./components/UserCard.vue";
 import ItemCard from "./components/ItemCard.vue";
+import InfiniteLoading from "vue-infinite-loading";
 
 export default {
   data() {
@@ -77,18 +82,21 @@ export default {
       searching: false,
       focus: false,
       transition: false,
+      page: 1,
+      url: window.location,
     };
   },
   components: {
     UserCard,
     ItemCard,
+    InfiniteLoading,
   },
   methods: {
     loadStats() {
-      let url = window.location + "api/latest";
       if (this.focus == true) {
         return;
       }
+      let url = this.url + "api/latest";
       axios
         .get(url)
         .then((response) => response.data)
@@ -101,52 +109,63 @@ export default {
         });
     },
     loadUserStats() {
-      let url = window.location + "api/" + this.user.user.uri.split(":")[2];
+      let url = this.url + "api/" + this.user.user.uri.split(":")[2] + "/0";
       axios
         .get(url)
         .then((response) => response.data)
         .then((data) => {
           this.userActivity = data.activity;
-          this.userActivity.sort((a, b) => {
-            return b.timestamp - a.timestamp;
-          });
+        });
+    },
+    infiniteHandler($state) {
+      let url =
+        this.url + "api/" + this.user.user.uri.split(":")[2] + "/" + this.page;
+      axios
+        .get(url)
+        .then((response) => response.data)
+        .then((data) => {
+          if (data.activity.length) {
+            this.userActivity = this.userActivity.concat(data.activity);
+            this.page += 1;
+            setTimeout(() => {
+              $state.loaded();
+            }, 200);
+          } else {
+            $state.complete();
+          }
         });
     },
     autoReload() {
       if (!document.hidden) {
         if (!this.focus) {
           this.loadStats();
-        } else {
-          this.loadUserStats();
         }
       }
     },
     startFocus(friend) {
-      this.transition = true;
       this.focus = false;
       this.listeningActivity = [];
+      this.userActivity = [];
       this.user = friend;
-      setTimeout(() => {
-        this.loadUserStats();
-      }, 500);
+      this.loadUserStats();
+      this.page = 1;
       setTimeout(() => {
         this.focus = true;
-        this.transition = false;
-      }, 900);
+        this.listeningActivity = [];
+      }, 200);
     },
     endFocus() {
-      this.transition = true;
       this.focus = true;
-      this.userActivity = [];
-      this.friendactivity = [];
+      this.userActivity.slice(0, 15);
+      setTimeout(() => {
+        this.userActivity = [];
+      }, 300);
+      this.listeningActivity = [];
       this.user = null;
-      this.loadStats();
+      this.focus = false;
       setTimeout(() => {
-        this.focus = false;
-      }, 500);
-      setTimeout(() => {
-        this.transition = false;
-      }, 900);
+        this.loadStats();
+      }, 700);
     },
     focusSearchbar() {
       this.$refs.searchbox.focus();
@@ -173,11 +192,11 @@ export default {
       let diff =
         item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
       if (diff > 5000) {
-        return "border: dashed 1.5px #383838; height: 90px; top: 55px";
+        return "border: dashed 1.5px #383838; height: 90px; top: -72px";
       } else if (diff < 0) {
-        return "border: solid 1.5px #A52A2A	; height: 70px; top: 55px";
+        return "border: solid 1.5px #A52A2A; height: 70px; top: -32.5px";
       } else {
-        return "border: solid 1.5px #383838; height: 70px; top: 55px";
+        return "border: solid 1.5px #383838; height: 70px; top: -42.5px";
       }
     },
     marginStyle(i) {
@@ -200,6 +219,7 @@ export default {
   },
   mounted() {
     document.title = "Spotify Friend Activity";
+    // this.url = "http://192.168.0.30:10000/";
     this.loadStats();
     addEventListener("visibilitychange", this.autoReload);
     addEventListener("keydown", (e) => {
@@ -266,6 +286,7 @@ a:hover {
 .friendactivity-content-top-wrap {
   position: relative;
   padding-top: 20px;
+  width: 320px;
 }
 
 .friendactivity-content-top-wrap span {
@@ -279,6 +300,7 @@ a:hover {
   position: relative;
   opacity: 50%;
   background: none;
+  left: 10px;
   border: none;
   cursor: pointer;
 }
@@ -296,6 +318,7 @@ a:hover {
   margin-bottom: 7px;
   border-radius: 0.6rem;
   border: none;
+  width: 330px;
 }
 
 .friendactivity-content-button:hover {
@@ -381,7 +404,7 @@ a:hover {
 }
 
 .name-move,
-.name.leave.active,
+.name-leave-active,
 .name-enter-active {
   transition: all 0.5s ease;
 }
@@ -389,7 +412,7 @@ a:hover {
 .name-enter-from,
 .name-leave-to {
   opacity: 0;
-  transform: translateY(30px);
+  transform: translateY(-30px);
 }
 
 .name-leave-active {

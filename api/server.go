@@ -13,6 +13,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -243,13 +244,18 @@ func getTrackInfo(id string) (TrackInfo, error) {
 
 // HTTP response handlers
 func userActivityResponse(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)["user"]
+	user := mux.Vars(r)["user"]
+	page_str := mux.Vars(r)["page"]
+	page, err := strconv.Atoi(page_str)
+	if err != nil {
+		page = -1
+	}
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Content-Type", "application/json")
 	uris := getUserUris()
 	for i := 0; i < len(uris); i++ {
-		if strings.Split(uris[i], ":")[2] == vars {
-			resp, err := getUserCachedActivity(vars)
+		if strings.Split(uris[i], ":")[2] == user {
+			resp, err := getUserCachedActivity(user, page)
 			handleErr(err)
 			resp_json, err := json.Marshal(resp)
 			handleErr(err)
@@ -289,7 +295,7 @@ func configResponse(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	router := mux.NewRouter()
 	router.HandleFunc("/api/latest", latestActivityResponse)
-	router.HandleFunc("/api/{user}", userActivityResponse)
+	router.HandleFunc("/api/{user}/{page}", userActivityResponse)
 	router.HandleFunc("/config", configResponse)
 	if _, err := os.Stat("/.dockerenv"); errors.Is(err, os.ErrNotExist) {
 		router.PathPrefix("/").Handler(http.FileServer(http.Dir("../frontend/dist")))
@@ -527,11 +533,9 @@ func getLatestCachedActivity() (FriendActivity, error) {
 		cmd := fmt.Sprintf(`SELECT user_uri, user_name, user_image from users WHERE user_table = "%s"`, tables[i])
 		rows, err := db.Query(cmd)
 		handleErr(err)
-		var user_uri string
-		var user_name string
-		var user_image string
+		var friend Friend
 		for rows.Next() {
-			err = rows.Scan(&user_uri, &user_name, &user_image)
+			err = rows.Scan(&friend.User.URI, &friend.User.Name, &friend.User.ImageURL)
 			handleErr(err)
 		}
 		rows.Close()
@@ -539,78 +543,26 @@ func getLatestCachedActivity() (FriendActivity, error) {
 		rows, err = db.Query(cmd)
 		handleErr(err)
 		for rows.Next() {
-			var timestamp int
-			var track_uri string
-			var track_name string
-			var track_image string
-			var album_uri string
-			var album_name string
-			var artist_uri string
-			var artist_name string
-			var context_uri string
-			var context_name string
-			var context_index int
-			var duration_ms int
+			var duration_ms sql.NullInt64
 			err = rows.Scan(
-				&timestamp,
-				&track_uri,
-				&track_name,
-				&track_image,
-				&album_uri,
-				&album_name,
-				&artist_uri,
-				&artist_name,
-				&context_uri,
-				&context_name,
-				&context_index,
+				&friend.Timestamp,
+				&friend.Track.URI,
+				&friend.Track.Name,
+				&friend.Track.ImageURL,
+				&friend.Track.Album.URI,
+				&friend.Track.Album.Name,
+				&friend.Track.Artist.URI,
+				&friend.Track.Artist.Name,
+				&friend.Track.Context.URI,
+				&friend.Track.Context.Name,
+				&friend.Track.Context.Index,
 				&duration_ms,
 			)
-			if err != nil {
-				err = rows.Scan(
-					&timestamp,
-					&track_uri,
-					&track_name,
-					&track_image,
-					&album_uri,
-					&album_name,
-					&artist_uri,
-					&artist_name,
-					&context_uri,
-					&context_name,
-					&context_index,
-				)
-				handleErr(err)
+			handleErr(err)
+			if duration_ms.Valid {
+				duration_ms.Int64 = 300000
 			}
-			if duration_ms == 0 {
-				duration_ms = 300000
-			}
-			friend := Friend{
-				Timestamp: timestamp,
-				Duration:  duration_ms,
-				User: User{
-					URI:      user_uri,
-					Name:     user_name,
-					ImageURL: user_image,
-				},
-				Track: Track{
-					URI:      track_uri,
-					Name:     track_name,
-					ImageURL: track_image,
-					Album: Album{
-						URI:  album_uri,
-						Name: album_name,
-					},
-					Artist: Artist{
-						URI:  artist_uri,
-						Name: artist_name,
-					},
-					Context: Context{
-						URI:   context_uri,
-						Name:  context_name,
-						Index: context_index,
-					},
-				},
-			}
+			friend.Duration = int(duration_ms.Int64)
 			activity = append(activity, friend)
 		}
 		rows.Close()
@@ -618,79 +570,39 @@ func getLatestCachedActivity() (FriendActivity, error) {
 	return FriendActivity{Friends: activity}, nil
 }
 
-func getUserCachedActivity(user string) (UserActivity, error) {
-	cmd := fmt.Sprintf("SELECT * from user%s", user)
+func getUserCachedActivity(user string, page int) (UserActivity, error) {
+	var cmd string
+	if page == -1 {
+		cmd = fmt.Sprintf("SELECT * from user%s", user)
+	} else {
+		cmd = fmt.Sprintf("SELECT * from user%s ORDER BY timestamp DESC LIMIT 20 OFFSET %v", user, page*20)
+	}
+	println(cmd)
 	rows, err := db.Query(cmd)
 	handleErr(err)
 	activity := make([]Activity, 0)
 	for rows.Next() {
-		var timestamp int
-		var track_uri string
-		var track_name string
-		var track_image string
-		var album_uri string
-		var album_name string
-		var artist_uri string
-		var artist_name string
-		var context_uri string
-		var context_name string
-		var context_index int
-		var duration_ms int
+		var friend Activity
+		var duration_ms sql.NullInt64
 		err = rows.Scan(
-			&timestamp,
-			&track_uri,
-			&track_name,
-			&track_image,
-			&album_uri,
-			&album_name,
-			&artist_uri,
-			&artist_name,
-			&context_uri,
-			&context_name,
-			&context_index,
+			&friend.Timestamp,
+			&friend.Track.URI,
+			&friend.Track.Name,
+			&friend.Track.ImageURL,
+			&friend.Track.Album.URI,
+			&friend.Track.Album.Name,
+			&friend.Track.Artist.URI,
+			&friend.Track.Artist.Name,
+			&friend.Track.Context.URI,
+			&friend.Track.Context.Name,
+			&friend.Track.Context.Index,
 			&duration_ms,
 		)
-		if err != nil {
-			err = rows.Scan(
-				&timestamp,
-				&track_uri,
-				&track_name,
-				&track_image,
-				&album_uri,
-				&album_name,
-				&artist_uri,
-				&artist_name,
-				&context_uri,
-				&context_name,
-				&context_index,
-			)
-			handleErr(err)
+		handleErr(err)
+		if duration_ms.Int64 == 0 {
+			duration_ms.Int64 = 300000
 		}
-		if duration_ms == 0 {
-			duration_ms = 300000
-		}
-		friend := Activity{
-			Timestamp: timestamp,
-			Duration:  duration_ms,
-			Track: Track{
-				URI:      track_uri,
-				Name:     track_name,
-				ImageURL: track_image,
-				Album: Album{
-					URI:  album_uri,
-					Name: album_name,
-				},
-				Artist: Artist{
-					URI:  artist_uri,
-					Name: artist_name,
-				},
-				Context: Context{
-					URI:   context_uri,
-					Name:  context_name,
-					Index: context_index,
-				},
-			},
-		}
+		friend.Duration = int(duration_ms.Int64)
 		activity = append(activity, friend)
 	}
 	rows.Close()
