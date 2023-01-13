@@ -192,11 +192,11 @@ export default {
       let diff =
         item.timestamp - this.userActivity[i + 1].timestamp - item.duration;
       if (diff > 5000) {
-        return "border: dashed 1.5px #383838; height: 90px; top: -72px";
+        return "border: dashed 1.4px #383838; height: 90px; top: -72px";
       } else if (diff < 0) {
-        return "border: solid 1.5px #A52A2A; height: 70px; top: -32.5px";
+        return "border: solid 1.4px #A52A2A; height: 70px; top: -32.5px";
       } else {
-        return "border: solid 1.5px #383838; height: 70px; top: -42.5px";
+        return "border: solid 1.4px #383838; height: 70px; top: -42.5px";
       }
     },
     marginStyle(i) {
