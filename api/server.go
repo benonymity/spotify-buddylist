@@ -368,6 +368,10 @@ func updateUserDb() bool {
 			_, err := stmt.Exec(user.URI, user.Name, user.ImageURL, user_table)
 			handleErr(err)
 			updated = true
+		} else {
+			user_table := "user" + strings.Split(user.URI, ":")[2]
+			_, err := stmt.Exec(user.URI, user.Name, user.ImageURL, user_table)
+			handleErr(err)
 		}
 		resp_users = append(resp_users, user.URI)
 	}
