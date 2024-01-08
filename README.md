@@ -4,6 +4,10 @@ This program serves a webpage that imitates Spotify's official friend activity l
 
 It serves a web client that calls a backend proxy on your server which talks to Spotify's unofficial activity API using a privledged access token and displays it in a webpage with similar styling to Spotify.
 
+Example:
+![Example](https://github.com/benonymity/spotify-buddylist/assets/62854267/a071aa7b-0f34-49d4-b0db-43847497adf8)
+
+
 # Usage
 
 ### Manual:
