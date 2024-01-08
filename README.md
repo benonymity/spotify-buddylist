@@ -46,7 +46,11 @@ docker run -d -p 10000:10000 -v spotify/activity.db:/activity.db --name spotify-
 
 # Getting your sp_dc token
 
-Login to the [web player](https://open.spotify.com/) in an incognito window and Inspect Element. Open the network tab and search `clienttoken`, then copy the token from the response. This is your one-year-expiry sp_dc token.
+Login to the [web player](https://open.spotify.com/) and Inspect Element. Open the network tab and then paste [https://open.spotify.com/get_access_token?reason=transport&productType=web_player](https://open.spotify.com/get_access_token?reason=transport&productType=web_player) into the normal URL bar, press enter to load the tab, then open the first item in the network page:
+
+![Screenshot 2024-01-08 at 4 08 21 PM|300](https://github.com/benonymity/spotify-buddylist/assets/62854267/fc3171d1-0eac-4eef-b94a-dfc76e40f3f1)
+
+Scroll down to cookie in the Request Headers, then hunt for `sp_dc=...` and copy what come after until the semicolon. This is your one-year-expiry sp_dc token.
 
 # Todo:
 
