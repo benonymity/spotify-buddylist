@@ -218,8 +218,9 @@ export default {
     },
   },
   mounted() {
-    document.title = "Spotify Friend Activity";
-    // this.url = "http://192.168.0.30:10000/";
+    if (String(this.url).includes("127.0.0.1") | String(this.url).includes("localhost")) {
+      this.url = "http://localhost:10000/"
+    }
     this.loadStats();
     addEventListener("visibilitychange", this.autoReload);
     addEventListener("keydown", (e) => {
